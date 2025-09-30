@@ -1,0 +1,140 @@
+# Starter pipeline
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: 'Test-Runner'
+
+variables:
+  buildConfiguration: 'Release'
+  dockerRegistryServiceConnection: 'docker-service-connection'   # Azure DevOps Docker service connection name
+  imageRepository: 'adarshbarkunta/myapp'
+  containerRegistry: 'docker-service-connection'   # Replace with your ACR/Docker Hub registry
+  dockerfilePath: 'Dockerfile'
+
+  tag: '$(Build.BuildId)'
+
+stages:
+  # =========================
+  # 1. Build & Test with Maven
+  # =========================
+  - stage: Build
+    displayName: "Build and Test"
+    jobs:
+      - job: MavenBuild
+        displayName: "Maven Compile & Test"
+        steps:
+          - task: Maven@4
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'clean compile test'
+              publishJUnitResults: true
+              # testResultsFiles: '**/surefire-reports/*.xml'
+              testResultsFiles: 'target/surefire-reports/*.xml'
+
+  # =========================
+  # 2. SonarQube Analysis
+  # =========================    
+  - stage: SonarQube
+    displayName: "Code Quality Scan"
+    jobs:
+      - job: SonarScan
+        displayName: "SonarQube Analysis"
+        steps:
+          - task: SonarQubePrepare@6
+            inputs:
+              SonarQube: 'SonarQubeServiceConnection'   # Service connection in Azure DevOps
+              scannerMode: 'Other'
+              configMode: 'manual'
+              extraProperties: |
+                sonar.projectKey=myapp
+                sonar.projectName=myapp
+                # sonar.sources=java-cicd-project/spring-boot-app/src/main/java
+                # sonar.tests=java-cicd-project/spring-boot-app/src/test/java
+                # sonar.java.binaries=java-cicd-project/spring-boot-app/target/classes
+
+          - task: Maven@4
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'clean verify'
+              publishJUnitResults: true
+              testResultsFiles: 'target/surefire-reports/*.xml'
+
+          - task: SonarQubeAnalyze@6
+            displayName: "Run SonarQube Analysis"
+
+          - task: SonarQubePublish@6
+            inputs:
+              pollingTimeoutSec: '300'
+          - task: Maven@4
+            displayName: "Maven Build JAR for Docker"
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'package -DskipTests'
+          - script: |
+              echo "Listing target folder contents:"
+              ls -l target/
+            displayName: "Show built JAR"
+          #   # Publish the built JAR as an artifact for later stages
+          # - publish: 'java-cicd-project/spring-boot-app/target/spring-boot-web.jar'
+          #   artifact: springBootJar
+
+  # =========================
+  # 4. Build & Push Docker Image
+  # =========================
+  - stage: DockerBuild
+    displayName: "Build & Push Docker Image"
+    jobs:
+      - job: Docker
+        steps:
+          # # Download the JAR artifact from the Build stage
+          # - download: current
+          #   artifact: springBootJar
+           
+          - task: Docker@2
+            inputs:
+              containerRegistry: '$(dockerRegistryServiceConnection)'
+              repository: '$(imageRepository)'
+              command: 'buildAndPush'
+              dockerfile: '$(dockerfilePath)'
+              # buildContext: 'java-cicd-project/spring-boot-app'
+              # arguments: '--build-arg springBootJar=spring-boot-web.jar'
+              tags: |
+                $(tag)
+
+  # =========================
+  # 5. Trivy Scan
+  # =========================
+  - stage: Trivy
+    displayName: "Trivy Vulnerability Scan"
+    dependsOn: DockerBuild
+    jobs:
+      - job: Scan
+        steps:
+          - script: |
+              curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+              sudo mv ./bin/trivy /usr/local/bin/trivy
+              trivy --version
+              trivy image $(imageRepository):$(tag) --exit-code 1 --severity HIGH,CRITICAL
+            displayName: "Run Trivy Scan"
+
+  # =========================
+  # 6. Deploy
+  # =========================
+  - stage: Deploy
+    displayName: "Deploy Application"
+    dependsOn: Trivy
+    condition: succeeded()
+    jobs:
+      - job: DeployApp
+        steps:
+          - script: |
+              echo "Pulling image from registry..."
+              docker pull $(imageRepository):$(tag)
+
+              echo "Starting new container..."
+              docker run -d --name myapp -p 8080:8080 $(imageRepository):$(tag)
+            displayName: "Deploy to Container Service"
