@@ -1,5 +1,4 @@
-<img width="3829" height="1500" alt="diagram-export-9-30-2025-6_27_38-PM" src="https://github.com/user-attachments/assets/a0669b87-2cc4-4532-8d69-6f5a7bad5aca" />
-
+<img width="2829" height="1500" alt="diagram-export-9-30-2025-6_27_38-PM" src="https://github.com/user-attachments/assets/a0669b87-2cc4-4532-8d69-6f5a7bad5aca" />
 
 # CI/CD Pipeline for Java Application
 
