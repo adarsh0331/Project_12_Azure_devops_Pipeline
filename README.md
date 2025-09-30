@@ -1,4 +1,4 @@
-````markdown
+
 # CI/CD Pipeline for Java Application
 
 This document outlines the Continuous Integration and Continuous Deployment (CI/CD) pipeline for a Java application, implemented using Azure DevOps, with integrations for Maven, SonarQube, Docker, and Trivy. The pipeline automates the build, test, code quality analysis, containerization, vulnerability scanning, and deployment to a self-hosted virtual machine (VM).
