@@ -3,7 +3,7 @@
 
 This document outlines the Continuous Integration and Continuous Deployment (CI/CD) pipeline for a Java application, implemented using Azure DevOps, with integrations for Maven, SonarQube, Docker, and Trivy. The pipeline automates the build, test, code quality analysis, containerization, vulnerability scanning, and deployment to a self-hosted virtual machine (VM).
 
----
+
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ This document outlines the Continuous Integration and Continuous Deployment (CI/
 - [Troubleshooting](#troubleshooting)  
 - [Contributing](#contributing)  
 
----
+
 
 ## Overview
 
@@ -43,7 +43,7 @@ The CI/CD pipeline automates the process of building, testing, analyzing, and de
 
 The pipeline ensures high code quality, security, and traceability, with modular stages for maintainability.
 
----
+
 
 ## Infrastructure Setup
 
@@ -63,7 +63,7 @@ The pipeline deploys to a self-hosted virtual machine with the following specifi
 **Self-Hosted Agent:**  
 - Azure DevOps agent installed on the VM to execute pipeline tasks.  
 
----
+
 
 ## Tools and Services
 
@@ -74,7 +74,7 @@ The pipeline deploys to a self-hosted virtual machine with the following specifi
 - **Trivy:** Vulnerability scanner for Docker images to detect security issues.  
 - **Docker Hub:** Registry for storing and retrieving Docker images.  
 
----
+
 
 ## Pipeline Flow
 
@@ -86,7 +86,7 @@ The pipeline is triggered on code pushes to the main branch or pull requests. It
 4. **Trivy Vulnerability Scan:** Scans the Docker image for vulnerabilities, failing the pipeline if critical issues are found.  
 5. **Deployment:** Pulls the Docker image to the self-hosted VM and runs the container.  
 
----
+
 
 ## Pipeline Stages
 
@@ -100,7 +100,7 @@ The pipeline is triggered on code pushes to the main branch or pull requests. It
 
 **Output:** A compiled JAR file stored as a pipeline artifact.  
 
----
+
 
 ### SonarQube Analysis
 
@@ -112,7 +112,7 @@ The pipeline is triggered on code pushes to the main branch or pull requests. It
 
 **Output:** Analysis results available in the SonarQube dashboard.  
 
----
+
 
 ### Docker Build & Push
 
@@ -124,7 +124,7 @@ The pipeline is triggered on code pushes to the main branch or pull requests. It
 
 **Output:** Docker image stored in Docker Hub.  
 
----
+
 
 ### Trivy Vulnerability Scan
 
@@ -135,7 +135,7 @@ The pipeline is triggered on code pushes to the main branch or pull requests. It
 
 **Output:** Scan report published as a pipeline artifact.  
 
----
+
 
 ### Deployment
 
@@ -147,7 +147,7 @@ The pipeline is triggered on code pushes to the main branch or pull requests. It
 
 **Output:** Application running on the VM, accessible via port 8080.  
 
----
+
 
 ## Key YAML Snippets
 
@@ -285,7 +285,7 @@ stages:
             displayName: "Deploy to Container Service"
 ````
 
----
+
 
 ## Example Dockerfile
 
@@ -305,7 +305,7 @@ RUN rm -rf ROOT && mv *.war ROOT.war
 EXPOSE 8080
 ```
 
----
+
 
 ## Best Practices
 
@@ -316,7 +316,7 @@ EXPOSE 8080
 * **Quality Gates:** SonarQube enforces strict code quality standards, preventing subpar code from reaching production.
 * **Self-Hosted Agent:** Using a self-hosted agent reduces dependency on cloud-hosted agents and provides control over the environment.
 
----
+
 
 ## Prerequisites
 
@@ -329,7 +329,7 @@ EXPOSE 8080
 * **Maven Project:** A Java application with a valid `pom.xml` .
 * **Trivy:** Available as a Docker image for vulnerability scanning.
 
----
+
 
 ## Setup Instructions
 
@@ -400,7 +400,7 @@ sudo apt install maven -y
 
 * In Azure DevOps, go to **Project Settings > Agent Pools > Self-Hosted-Pool**, and confirm the agent is online.
 
----
+
 
 ### Creating Docker Hub Service Connection
 
@@ -418,7 +418,7 @@ sudo apt install maven -y
    * Service Connection Name: `DockerHubServiceConnection`
 8. Save and verify the connection.
 
----
+
 
 ### Creating SonarQube Service Connection
 
@@ -448,7 +448,7 @@ docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
    * Service Connection Name: `SonarQubeServiceConnection`
 4. Save and verify the connection.
 
----
+
 
 ### Additional Setup Steps
 
@@ -469,7 +469,6 @@ docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
 * Push changes to the main branch or create a pull request.
 * Monitor the pipeline in Azure DevOps for build, test, analysis, and deployment status.
 
----
 
 ## Troubleshooting
 
@@ -480,7 +479,7 @@ docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
 * **Deployment Failure:** Ensure SSH access to the VM and correct Docker commands in the pipeline.
 * **Agent Offline:** Check the agent service status on the VM (`sudo ./svc.sh status`) and ensure the PAT is valid.
 
----
+
 
 ## Contributing
 
